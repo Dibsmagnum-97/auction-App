@@ -42,6 +42,35 @@ export default function AuctionRoom({ user }) {
     setCurrentBid(prev => prev + 100);
     setHighestBidder(user.name);
   };
+  const placeBid = () => {
+    // Send the bid up to the Python backend
+    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+      ws.current.send(JSON.stringify({ action: 'BID', amount: 100 }));
+    }
+    
+    // Update locally for instant feedback
+    setCurrentBid(prev => prev + 100);
+    setHighestBidder(user.username);
+  };
+  useEffect(() => {
+    // Connect to the actual Python WebSocket API
+    // Change 'ws://https://auction-app-hfsu.onrender.com' to 'wss://your-backend-app.onrender.com' if testing live!
+    const wsUrl = `ws://https://auction-app-hfsu.onrender.com/ws/auction/${user.username}`;
+    ws.current = new WebSocket(wsUrl);
+
+    ws.current.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      
+      // Update the frontend based on backend broadcasts
+      if (data.type === 'SYSTEM' || data.type === 'UPDATE') {
+        if (data.current_bid !== undefined) setCurrentBid(data.current_bid);
+      }
+    };
+
+    return () => {
+      if (ws.current) ws.current.close();
+    };
+  }, [user.username]);
 
   return (
     <div className="w-full max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-3 gap-8 mt-6">
