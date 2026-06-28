@@ -17,6 +17,7 @@ export default function App() {
     }
   };
 
+  
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
       <nav className="bg-white border-b border-slate-200 shadow-sm fixed top-0 w-full z-50">
