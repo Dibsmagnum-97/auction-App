@@ -9,7 +9,7 @@ export default function AuctionRoom({ user }) {
   const ws = useRef(null);
 
   useEffect(() => {
-    ws.current = new WebSocket(`ws://https://auction-app-hfsu.onrender.com/ws/auction`);
+    ws.current = new WebSocket(`ws://auction-app-hfsu.onrender.com/ws/auction`);
 
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data);
