@@ -16,7 +16,7 @@ export default function Registration({ onLogin }) {
     const payload = isLogin ? { name, phone } : { name, phone, gender };
 
     try {
-      const response = await fetch(`http://localhost:8000${endpoint}`, {
+      const response = await fetch(`https://auction-app-hfsu.onrender.com${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
