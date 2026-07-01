@@ -141,6 +141,50 @@ def update_player_details(user_id: int, req: PlayerUpdateRequest, db: Session = 
     player.phone = req.phone
     db.commit()
     return {"message": "Player updated successfully"}
+
+
+# --- NEW: Match Schemas ---
+class MatchRequest(BaseModel):
+    team1: str
+    team2: str
+    match_date: str
+    match_time: str
+    status: Optional[str] = "Upcoming"
+
+# --- NEW: Match REST API Routes ---
+@app.get("/api/matches")
+def get_matches(db: Session = Depends(get_db)):
+    return db.query(models.Match).all()
+
+@app.post("/api/admin/matches")
+def create_match(req: MatchRequest, db: Session = Depends(get_db)):
+    new_match = models.Match(**req.dict())
+    db.add(new_match)
+    db.commit()
+    return {"message": "Match scheduled successfully"}
+
+@app.put("/api/admin/matches/{match_id}")
+def update_match(match_id: int, req: MatchRequest, db: Session = Depends(get_db)):
+    match = db.query(models.Match).filter(models.Match.id == match_id).first()
+    if not match:
+        raise HTTPException(status_code=404, detail="Match not found")
+    
+    match.team1 = req.team1
+    match.team2 = req.team2
+    match.match_date = req.match_date
+    match.match_time = req.match_time
+    match.status = req.status
+    db.commit()
+    return {"message": "Match updated"}
+
+@app.delete("/api/admin/matches/{match_id}")
+def delete_match(match_id: int, db: Session = Depends(get_db)):
+    match = db.query(models.Match).filter(models.Match.id == match_id).first()
+    if not match:
+        raise HTTPException(status_code=404, detail="Match not found")
+    db.delete(match)
+    db.commit()
+    return {"message": "Match deleted"}
 # --- WEBSOCKET AUCTION MANAGER ---
 class LiveAuctionState:
     def __init__(self):
