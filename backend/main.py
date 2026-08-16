@@ -31,10 +31,11 @@ def create_default_admin():
     db.close()
 
 # --- REST API SCHEMAS ---
+# --- SCHEMAS ---
 class AuthRequest(BaseModel):
     name: str
     phone: str
-    gender: Optional[str] = "Male" # NEW: Gender added
+    gender: Optional[str] = "Male"
 
 class PromoteRequest(BaseModel):
     phone: str
@@ -51,13 +52,24 @@ class UserEditRequest(BaseModel):
     is_auctioned: bool
     auctioned_to: Optional[str] = None
     auction_price: int
+    is_approved: bool # NEW
 
+class ParticipantEditRequest(BaseModel):
+    name: str
+    gender: str
 # --- REST API ROUTES ---
 @app.post("/api/signup")
 def signup(req: AuthRequest, db: Session = Depends(get_db)):
     if db.query(models.User).filter(models.User.phone == req.phone).first():
         raise HTTPException(status_code=400, detail="Phone number already registered.")
-    new_user = models.User(name=req.name, phone=req.phone, gender=req.gender, role="PARTICIPANT")
+    
+    new_user = models.User(
+        name=req.name, 
+        phone=req.phone, 
+        gender=req.gender, 
+        role="PARTICIPANT",
+        is_approved=False # Requires admin approval
+    )
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
@@ -79,6 +91,17 @@ def get_user_by_phone(phone: str, db: Session = Depends(get_db)):
 @app.get("/api/users")
 def get_all_users(db: Session = Depends(get_db)):
     return db.query(models.User).all()
+
+@app.put("/api/participant/edit/{phone}")
+def edit_own_profile(phone: str, req: ParticipantEditRequest, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.phone == phone).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.name = req.name
+    user.gender = req.gender
+    db.commit()
+    db.refresh(user)
+    return user
 
 @app.post("/api/admin/promote")
 def promote_to_owner(req: PromoteRequest, db: Session = Depends(get_db)):
@@ -106,6 +129,7 @@ def edit_user(user_id: int, req: UserEditRequest, db: Session = Depends(get_db))
     user.is_auctioned = req.is_auctioned
     user.auctioned_to = req.auctioned_to if req.auctioned_to else None
     user.auction_price = req.auction_price
+    user.is_approved = req.is_approved # Admin approval toggle
     db.commit()
     return {"message": "User successfully updated"}
  
@@ -235,21 +259,23 @@ async def auction_endpoint(websocket: WebSocket, db: Session = Depends(get_db)):
             data = await websocket.receive_json()
             action = data.get("action")
 
-            if action == "SPIN_LUDO":
-                # NEW: Filter available candidates by the gender requested by Admin
+            if action == "SPIN_DRAFT": # Changed from SPIN_LUDO
                 target_gender = data.get("gender", "Male")
+                
+                # CRITICAL: Only select users who are APPROVED by Admin
                 available = db.query(models.User).filter(
                     models.User.role == "PARTICIPANT", 
                     models.User.is_auctioned == False,
-                    models.User.gender == target_gender
+                    models.User.gender == target_gender,
+                    models.User.is_approved == True 
                 ).all()
                 
                 if not available:
-                    await websocket.send_json({"type": "ERROR", "message": f"No {target_gender} candidates left!"})
+                    await websocket.send_json({"type": "ERROR", "message": f"No approved {target_gender} candidates left!"})
                     continue
                 
                 await auction_state.broadcast_spin()
-                await asyncio.sleep(2.5) 
+                await asyncio.sleep(3.0) # slightly longer for new UI animation
                 
                 chosen = random.choice(available)
                 auction_state.active_candidate = {"id": chosen.id, "name": chosen.name, "phone": chosen.phone, "gender": chosen.gender}

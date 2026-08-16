@@ -3,6 +3,7 @@ from database import Base
 
 class User(Base):
     __tablename__ = "users"
+
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     phone = Column(String, unique=True, index=True) 
@@ -14,8 +15,10 @@ class User(Base):
     is_auctioned = Column(Boolean, default=False)   
     auctioned_to = Column(String, nullable=True)    
     auction_price = Column(Integer, default=0)
+    
+    # NEW: Admin Approval for Draft
+    is_approved = Column(Boolean, default=False) 
 
-# --- NEW: Match Schedule Table ---
 class Match(Base):
     __tablename__ = "matches"
     id = Column(Integer, primary_key=True, index=True)
@@ -23,4 +26,4 @@ class Match(Base):
     team2 = Column(String, index=True)
     match_date = Column(String)
     match_time = Column(String)
-    status = Column(String, default="Upcoming") # Upcoming, Live, Completed
+    status = Column(String, default="Upcoming")
