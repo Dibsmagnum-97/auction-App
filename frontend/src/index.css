@@ -1,9 +1,20 @@
-@keyframes zoomInOut {
-  0% { transform: scale(1.05) translate(0px, 0px); }
-  50% { transform: scale(1.15) translate(-10px, -10px); }
-  100% { transform: scale(1.05) translate(0px, 0px); }
-}
 @import "tailwindcss";  
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Base styles must go AFTER Tailwind imports */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+/* Animations must go inside the utilities layer */
+@layer utilities {
+  @keyframes zoomInOut {
+    0% { transform: scale(1.05) translate(0px, 0px); }
+    50% { transform: scale(1.15) translate(-10px, -10px); }
+    100% { transform: scale(1.05) translate(0px, 0px); }
+  }
+}
