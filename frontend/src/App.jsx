@@ -111,8 +111,8 @@ export default function App() {
               <div>
                 <label className="block text-xs font-bold text-slate-500 mb-1">Division</label>
                 <select className="w-full p-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 dark:text-white outline-none focus:border-indigo-500 font-bold" value={editGender} onChange={e => setEditGender(e.target.value)}>
-                  <option value="Male">Mens Section</option>
-                  <option value="Female">Womens Section</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
                 </select>
               </div>
               <p className="text-[10px] text-slate-400 font-bold">* Phone number cannot be changed.</p>

@@ -65,8 +65,8 @@ export default function Registration({ onLogin }) {
           <div>
             <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Division</label>
             <select className="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 dark:text-white focus:ring-0 focus:border-indigo-600 outline-none transition-all font-medium" value={gender} onChange={(e) => setGender(e.target.value)}>
-              <option value="Male">Mens Section</option>
-              <option value="Female">Womens Section</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
             </select>
           </div>
         )}
